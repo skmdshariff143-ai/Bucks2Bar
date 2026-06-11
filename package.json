@@ -1,0 +1,20 @@
+{
+  "name": "bucks2bar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A vanilla JavaScript monthly income and expense tracker with Chart.js visualization.",
+  "scripts": {
+    "start": "node server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "jsdom": "^22.1.0",
+    "vitest": "^1.6.1"
+  }
+}

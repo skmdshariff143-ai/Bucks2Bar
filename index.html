@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bucks2Bar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#f3f6f8;
+            --card:#ffffff;
+            --muted:#6c757d;
+            --accent-green: #198754;
+            --accent-red: #dc3545;
+        }
+        html,body{height:100%;}
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            background: linear-gradient(180deg, #eef4f6 0%, var(--bg) 40%);
+            color: #222;
+            -webkit-font-smoothing:antialiased;
+            padding-bottom:40px;
+        }
+        .h1-hero{font-size:2.6rem; font-weight:800; letter-spacing:-0.02em}
+        .card {
+            border: 0;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
+            box-shadow: 0 10px 30px rgba(22,33,64,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+            border-radius:14px;
+        }
+        .pill-badge{padding:.45rem .7rem; border-radius:999px; font-weight:700}
+        .pill-badge.income{background: linear-gradient(180deg,#218838,#198754); color:#fff}
+        .pill-badge.expense{background: linear-gradient(180deg,#e35b63,#dc3545); color:#fff}
+        .chart-card{min-height:440px; border-radius:12px; padding:18px}
+        .currency-prefix{min-width:3rem}
+        .table thead th{border-bottom:0}
+        .table tbody tr th{font-weight:700}
+        .input-group .form-control{border-radius:8px; box-shadow: inset 0 2px 6px rgba(16,24,40,0.03)}
+        .btn-pink{background:linear-gradient(180deg,#ff8cc7,#e83e8c); color:#fff; border:1px solid transparent; box-shadow:0 10px 25px rgba(232,62,140,0.18)}
+        .btn-pink:hover,.btn-pink:focus{background:linear-gradient(180deg,#ff97d6,#d63384); color:#fff}
+        .alert-pink{background:linear-gradient(180deg,#ff99cc,#dc2e7f); color:#fff; border:0; border-radius:14px;}
+        .validation-list li{display:flex; align-items:center; gap:.5rem; font-size:.95rem; margin-bottom:.3rem;}
+        .validation-list li.valid{color:#198754;}
+        .validation-list li.invalid{color:#dc3545; opacity:.85;}
+        .nav-tabs .nav-link{border:0; padding:.75rem 1.1rem; border-radius:10px}
+        .nav-tabs .nav-link.active{background:linear-gradient(180deg,#fff,#f8fafb); box-shadow:0 6px 18px rgba(22,33,64,0.04)}
+        /* 3D-like chart surface */
+        .chart-3d{
+            background: linear-gradient(180deg,#fbfeff 0%, #f2f6f8 100%);
+            border-radius:10px; padding:12px; box-shadow: 0 18px 50px rgba(14,30,37,0.06);
+            transform: perspective(800px) rotateX(3deg);
+        }
+        .download-btn{background:linear-gradient(180deg,#1e6fff,#0752d1); color:#fff}
+        /* responsive tweaks */
+        @media (max-width:767px){ .h1-hero{font-size:1.8rem} }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row align-items-start justify-content-between mb-4">
+            <div>
+                <h1 class="h1-hero mb-1">Bucks2Bar</h1>
+                <p class="text-muted mb-0">Enter monthly income and expenses, then view the USD bar chart.</p>
+            </div>
+            <div class="text-end mt-3 mt-md-0">
+                <span class="pill-badge income me-2">Income</span>
+                <span class="pill-badge expense">Expenses</span>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4">
+            <div id="usernameHero" class="alert alert-pink d-none mb-4 align-items-center" role="status">
+                <span class="me-2">✨</span>
+                <div><strong id="usernameDisplay"></strong>, your dashboard is ready.</div>
+            </div>
+            <form id="usernameForm" class="row gy-2 gx-3 align-items-end mb-4" novalidate>
+                <div class="col-12 col-md-8">
+                    <label for="usernameInput" class="form-label fw-semibold">Username</label>
+                    <input id="usernameInput" type="text" class="form-control form-control-lg" placeholder="Enter username" aria-describedby="usernameFeedback" />
+                    <div id="usernameFeedback" class="form-text mt-2"></div>
+                    <ul id="usernameRequirements" class="validation-list list-unstyled mb-2">
+                        <li class="invalid" data-validation="length" data-label="At least 5 characters">✗ At least 5 characters</li>
+                        <li class="invalid" data-validation="uppercase" data-label="Contains an uppercase letter">✗ Contains an uppercase letter</li>
+                        <li class="invalid" data-validation="number" data-label="Contains a number">✗ Contains a number</li>
+                        <li class="invalid" data-validation="special" data-label="Contains a special character">✗ Contains a special character</li>
+                    </ul>
+                </div>
+                <div class="col-auto">
+                    <button id="usernameSubmitBtn" type="submit" class="btn btn-pink btn-lg" disabled>Submit</button>
+                </div>
+            </form>
+            <ul class="nav nav-tabs" id="bucks2barTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="data-tab" data-bs-toggle="tab" data-bs-target="#data" type="button" role="tab" aria-controls="data" aria-selected="true">Data</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab" aria-controls="chart" aria-selected="false">Chart</button>
+                </li>
+            </ul>
+            <div class="tab-content mt-3" id="bucks2barTabsContent">
+                <div class="tab-pane fade show active" id="data" role="tabpanel" aria-labelledby="data-tab">
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Month</th>
+                                    <th scope="col">Income (USD)</th>
+                                    <th scope="col">Expense (USD)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="month-table-body"></tbody>
+                            <tfoot class="table-secondary">
+                                <tr>
+                                    <th>Total</th>
+                                    <td id="total-income" class="fw-semibold">$0.00</td>
+                                    <td id="total-expense" class="fw-semibold">$0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="text-muted small">Values are shown in USD and update the chart automatically.</div>
+                </div>
+                    <div class="tab-pane fade" id="chart" role="tabpanel" aria-labelledby="chart-tab">
+                        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-3">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="btn-group" role="group" aria-label="Chart type selector">
+                                    <button type="button" class="btn btn-pink active" id="chartTypeBarBtn">Bar</button>
+                                    <button type="button" class="btn btn-pink" id="chartTypeLineBtn">Line</button>
+                                </div>
+                                <p class="text-muted small mb-0">Toggle between monthly income and expense views.</p>
+                            </div>
+                            <button id="downloadChartBtn" class="btn btn-pink btn-sm shadow-sm" title="Download chart as PNG">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download me-2" viewBox="0 0 16 16" style="display: inline-block; vertical-align: text-bottom;">
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                                </svg>
+                                Download PNG
+                            </button>
+                        </div>
+                        <div class="row gx-2 gy-2 mb-3">
+                            <div class="col-sm-4">
+                                <div class="card p-3 border-0 shadow-sm">
+                                    <div class="text-muted small">Income</div>
+                                    <div id="chart-total-income" class="h5 mb-0">$0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="card p-3 border-0 shadow-sm">
+                                    <div class="text-muted small">Expenses</div>
+                                    <div id="chart-total-expense" class="h5 mb-0">$0.00</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="card p-3 border-0 shadow-sm">
+                                    <div class="text-muted small">Net</div>
+                                    <div id="chart-net" class="h5 mb-0 text-success">$0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-3d">
+                            <div class="card chart-card p-0">
+                                <canvas id="bucks2barChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script type="module" src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
